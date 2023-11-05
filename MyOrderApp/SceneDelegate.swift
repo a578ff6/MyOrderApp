@@ -7,16 +7,24 @@
 
 import UIKit
 
+// 主要的場景代理(SceneDelegate)類別，負責處理窗口場景的生命週期事件。
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
-
+    
+    // orderTabBarItem 的參照，用於更新 badge。
+    var orderTabBarItem: UITabBarItem!
+    
+    // 當場景與 App 連接時，這個方法會被呼叫。
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-        // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-        // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+        // 確保場景是一個窗口場景。
         guard let _ = (scene as? UIWindowScene) else { return }
+        
+        // 註冊觀察者，以便在訂單更新時收到通知。
+        NotificationCenter.default.addObserver(self, selector: #selector(updateOrderBadge), name: MenuController.orderUpdatedNotification, object: nil)
+        
+        // 初始化orderTabBarItem，指向 TabBarController 中的第二個視圖控制器的頁籤（也就是訂單）。
+        orderTabBarItem = (window?.rootViewController as? UITabBarController)?.viewControllers?[1].tabBarItem
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -47,6 +55,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // to restore the scene back to its current state.
     }
 
+    // 更新訂單badge的方法
+    @objc func updateOrderBadge() {
+        // 設定 badgeValue 為訂單中項目的數量。當當計數為 0 時，將 badge 值設為nil）
+        switch MenuController.shared.order.menuItems.count {
+        case 0:
+            orderTabBarItem.badgeValue = nil
+        case let count:
+            orderTabBarItem.badgeValue = String(count)
+        }
+    }
 
 }
 
